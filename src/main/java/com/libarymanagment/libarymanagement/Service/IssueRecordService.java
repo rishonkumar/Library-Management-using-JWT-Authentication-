@@ -27,6 +27,19 @@ public class IssueRecordService {
 
     public IssueRecord returnTheBook(Long bookid) {
 
+        IssueRecord issueRecord = issueRecordRepository.findById(bookid).orElseThrow(() -> new RuntimeException("Issue record not found"));
+        if(issueRecord.getIsReturned()) {
+            throw new RuntimeException("Book already returned");
+        }
+        issueRecord.setIsReturned(true);
+        issueRecord.setReturnDate(LocalDate.now());
+        // now update the quantity and availability of the book
+        Book Book = issueRecord.getBook();
+        Book.setQuantity(Book.getQuantity() + 1);
+        Book.setIsAvailable(true);
+        bookRepository.save(Book);
+
+        return issueRecordRepository.save(issueRecord);
     }
 
     public IssueRecord issueTheBook(Long bookid) {
@@ -53,6 +66,6 @@ public class IssueRecordService {
         }
 
         bookRepository.save(book);
-        issueRecordRepository.save(issueRecord);
+        return issueRecordRepository.save(issueRecord);
     }
 }
